@@ -1,0 +1,44 @@
+captainVersion: 4
+caproverOneClickApp:
+    instructions:
+        start: Just a plain Docker Compose.
+        end: $$cap_appname is deployed. 😄
+    variables:
+        - id: $$cap_postgres_user
+          label: Postgres user
+          defaultValue: 'postgres'
+########
+version: '3'
+services:
+    $$cap_appname-db:
+        image: postgres
+        volumes:
+            - $$cap_appname-data:/var/lib/postgresql/data
+        environment:
+            POSTGRES_USER: $$cap_postgres_user
+            POSTGRES_PASSWORD: 'postgres'
+            POSTGRES_DB: 'test_db'
+        caproverExtra:
+            notExposeAsWebApp: 'true'
+    $$cap_appname-api:
+        depends_on:
+            - $$cap_appname-db
+        image: 'andresabadia/simple-api:0.0.4'
+        environment:
+            DB_HOST: srv-captain--$$cap_appname-db
+        ports:
+            - '3004:3004'
+        caproverExtra:
+            containerHttpPort: '3004'
+    $$cap_appname-app:
+        depends_on:
+            - $$cap_appname-api
+        image: 'andresabadia/frontend-simple-api:0.0.3'
+        environment:
+            API_HOST: srv-captain--$$cap_appname-api
+        ports:
+            - '3005:80'
+        caproverExtra:
+            containerHttpPort: '80'
+volumes:
+    $$cap_appname-data:
