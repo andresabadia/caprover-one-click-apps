@@ -13,6 +13,14 @@ caproverOneClickApp:
         - id: $$cap_postgress_db
           label: Postgres DB
           defaultValue: 'test_db'
+        - id: $$cap_api_image_tag
+          label: simple-api image tag
+          defaultValue: '0.0.5'
+          description: Check the page for more info https://hub.docker.com/repository/docker/andresabadia/simple-api
+        - id: $$cap_app_image_tag
+          label: frontend-simple-api image tag
+          defaultValue: '0.0.3'
+          description: Check the page for more info https://hub.docker.com/repository/docker/andresabadia/frontend-simple-api
     displayName: A simple App
     isOfficial: false
     description: This is a simple testing app. It contains an Vue Frontend, Express Backend and postgres DB.
@@ -32,7 +40,7 @@ services:
     $$cap_appname-api:
         depends_on:
             - $$cap_appname-db
-        image: 'andresabadia/simple-api:0.0.4'
+        image: 'andresabadia/simple-api:$$cap_api_image_tag'
         environment:
             DB_HOST: srv-captain--$$cap_appname-db
             DB_NAME: $$cap_postgress_db
@@ -45,7 +53,7 @@ services:
     $$cap_appname-app:
         depends_on:
             - $$cap_appname-api
-        image: 'andresabadia/frontend-simple-api:0.0.3'
+        image: 'andresabadia/frontend-simple-api:$$cap_app_image_tag'
         environment:
             API_HOST: srv-captain--$$cap_appname-api
         ports:
