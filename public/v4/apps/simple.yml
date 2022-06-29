@@ -46,8 +46,6 @@ services:
             DB_NAME: $$cap_postgress_db
             DB_USERNAME: $$cap_postgres_user
             DB_PASSWORD: $$cap_postgres_password
-        ports:
-            - '3004:3004'
         caproverExtra:
             containerHttpPort: '3004'
     $$cap_appname-app:
@@ -56,8 +54,6 @@ services:
         image: 'andresabadia/frontend-simple-api:$$cap_app_image_tag'
         environment:
             API_HOST: srv-captain--$$cap_appname-api
-        ports:
-            - '3005:80'
         caproverExtra:
             containerHttpPort: '80'
 volumes:
