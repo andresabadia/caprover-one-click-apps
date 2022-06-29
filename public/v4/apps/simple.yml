@@ -1,12 +1,21 @@
 captainVersion: 4
 caproverOneClickApp:
     instructions:
-        start: Just a plain Docker Compose.
+        start: Just a simple Docker Compose one click app with app, api and db.
         end: $$cap_appname is deployed. 😄
     variables:
         - id: $$cap_postgres_user
           label: Postgres user
           defaultValue: 'postgres'
+        - id: $$cap_postgres_password
+          label: Postgres password
+          defaultValue: 'postgres'
+        - id: $$cap_postgress_db
+          label: Postgres DB
+          defaultValue: 'test_db'
+    displayName: A simple App
+    isOfficial: false
+    description: This is a simple testing app. It contains an Vue Frontend, Express Backend and postgres DB.
 ########
 version: '3'
 services:
@@ -16,8 +25,8 @@ services:
             - $$cap_appname-data:/var/lib/postgresql/data
         environment:
             POSTGRES_USER: $$cap_postgres_user
-            POSTGRES_PASSWORD: 'postgres'
-            POSTGRES_DB: 'test_db'
+            POSTGRES_PASSWORD: $$cap_postgres_password
+            POSTGRES_DB: $$cap_postgress_db
         caproverExtra:
             notExposeAsWebApp: 'true'
     $$cap_appname-api:
@@ -26,6 +35,9 @@ services:
         image: 'andresabadia/simple-api:0.0.4'
         environment:
             DB_HOST: srv-captain--$$cap_appname-db
+            DB_NAME: $$cap_postgress_db
+            DB_USERNAME: $$cap_postgres_user
+            DB_PASSWORD: $$cap_postgres_password
         ports:
             - '3004:3004'
         caproverExtra:
