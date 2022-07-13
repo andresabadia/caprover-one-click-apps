@@ -6,7 +6,7 @@ caproverOneClickApp:
     variables:
         - id: $$cap_api_image_tag
           label: docker-registry image tag
-          defaultValue: '0.0.1'
+          defaultValue: '0.0.2'
           description: Check the page for more info https://hub.docker.com/repository/docker/andresabadia/docker-registry
     displayName: A Docker Registry
     isOfficial: false
