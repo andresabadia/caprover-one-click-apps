@@ -1,0 +1,31 @@
+captainVersion: 4
+caproverOneClickApp:
+    instructions:
+        start: Just a simple Docker registry to save private docker images
+        end: $$cap_appname-registry is deployed. 😄
+    variables:
+        - id: $$cap_api_image_tag
+          label: docker-registry image tag
+          defaultValue: '0.0.1'
+          description: Check the page for more info https://hub.docker.com/repository/docker/andresabadia/docker-registry
+    displayName: A Docker Registry
+    isOfficial: false
+    description: This is an registry based on the docker registry image set with user credentials
+########
+version: '3'
+services:
+    $$cap_appname-registry:
+        restart: always
+        image: andresabadia/docker-registry:$$cap_api_image_tag
+        volumes:
+            - $$cap_appname-data:/data
+            - $$cap_appname-auth:/auth
+        environment:
+            REGISTRY_AUTH: htpasswd
+            REGISTRY_AUTH_HTPASSWD_PATH: /app/auth/htpasswd
+            REGISTRY_AUTH_HTPASSWD_REALM: Registry Realm
+        caproverExtra:
+            containerHttpPort: '5000'
+volumes:
+    $$cap_appname-data:
+    $$cap_appname-auth:
