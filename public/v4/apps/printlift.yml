@@ -16,11 +16,11 @@ caproverOneClickApp:
         - id: $$cap_api_image_tag
           label: simple-api image tag
           defaultValue: '0.0.2'
-          description: Check the page for more info https://hub.docker.com/repository/docker/andresabadia/simple-api
+          description: Check the page for more info https://docker-registry.caprover.webdvlopmnt.com/v2/printlift-api/tags/list
         - id: $$cap_app_image_tag
           label: frontend-simple-api image tag
           defaultValue: '0.0.2'
-          description: Check the page for more info https://hub.docker.com/repository/docker/andresabadia/frontend-simple-api
+          description: Check the page for more info https://docker-registry.caprover.webdvlopmnt.com/v2/printlift-app/tags/list
     displayName: A printlift App
     isOfficial: false
     description: printlift is a tool to upload image recognitions projects. This project is password protected.
