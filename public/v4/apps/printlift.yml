@@ -1,0 +1,60 @@
+captainVersion: 4
+caproverOneClickApp:
+    instructions:
+        start: printlift
+        end: $$cap_appname is deployed. 😄
+    variables:
+        - id: $$cap_postgres_user
+          label: Postgres user
+          defaultValue: 'postgres'
+        - id: $$cap_postgres_password
+          label: Postgres password
+          defaultValue: $$cap_gen_random_hex(20)
+        - id: $$cap_postgress_db
+          label: Postgres DB
+          defaultValue: 'printlift_api'
+        - id: $$cap_api_image_tag
+          label: simple-api image tag
+          defaultValue: '0.0.2'
+          description: Check the page for more info https://hub.docker.com/repository/docker/andresabadia/simple-api
+        - id: $$cap_app_image_tag
+          label: frontend-simple-api image tag
+          defaultValue: '0.0.2'
+          description: Check the page for more info https://hub.docker.com/repository/docker/andresabadia/frontend-simple-api
+    displayName: A printlift App
+    isOfficial: false
+    description: printlift is a tool to upload image recognitions projects. This project is password protected.
+########
+version: '3'
+services:
+    $$cap_appname-db:
+        image: postgres
+        volumes:
+            - data:/var/lib/postgresql/data
+        environment:
+            POSTGRES_USER: $$cap_postgres_user
+            POSTGRES_PASSWORD: $$cap_postgres_password
+            POSTGRES_DB: $$cap_postgress_db
+        ports:
+            - '5432:5432'
+    $$cap_appname-api:
+        depends_on:
+            - printlift-api-db
+        image: 'docker-registry.caprover.webdvlopmnt.com/printlift-api:$$cap_api_image_tag'
+        environment:
+            DATABASE_URL: 'postgres://$$cap_postgres_user:$$cap_postgres_password@srv-captain--$$cap_appname-db/$$cap_postgress_db'
+            AWS_ACCESS_KEY_ID: ''
+            AWS_BUCKET: ''
+            AWS_SECRET_ACCESS_KEY: ''
+        ports:
+            - '3000:3000'
+    $$cap_appname-app:
+        depends_on:
+            - printlift-api
+        image: 'docker-registry.caprover.webdvlopmnt.com/printlift-app:$$cap_app_image_tag'
+        environment:
+            environment: 'container'
+        ports:
+            - '8080:8080'
+volumes:
+    data:
