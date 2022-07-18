@@ -39,7 +39,7 @@ services:
             - '5432:5432'
     $$cap_appname-api:
         depends_on:
-            - printlift-api-db
+            - $$cap_appname-db
         image: 'docker-registry.caprover.webdvlopmnt.com/printlift-api:$$cap_api_image_tag'
         environment:
             DATABASE_URL: 'postgres://$$cap_postgres_user:$$cap_postgres_password@srv-captain--$$cap_appname-db/$$cap_postgress_db'
@@ -50,7 +50,7 @@ services:
             - '3000:3000'
     $$cap_appname-app:
         depends_on:
-            - printlift-api
+            - $$cap_appname-api
         image: 'docker-registry.caprover.webdvlopmnt.com/printlift-app:$$cap_app_image_tag'
         environment:
             environment: 'container'
