@@ -30,13 +30,13 @@ services:
     $$cap_appname-db:
         image: postgres
         volumes:
-            - data:/var/lib/postgresql/data
+            - $$cap_appname-data:/var/lib/postgresql/data
         environment:
             POSTGRES_USER: $$cap_postgres_user
             POSTGRES_PASSWORD: $$cap_postgres_password
             POSTGRES_DB: $$cap_postgress_db
-        ports:
-            - '5432:5432'
+        caproverExtra:
+            notExposeAsWebApp: 'true'
     $$cap_appname-api:
         depends_on:
             - $$cap_appname-db
@@ -57,4 +57,4 @@ services:
         caproverExtra:
             containerHttpPort: '8080'
 volumes:
-    data:
+    $$cap_appname-data:
