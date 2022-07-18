@@ -46,8 +46,6 @@ services:
             AWS_ACCESS_KEY_ID: ''
             AWS_BUCKET: ''
             AWS_SECRET_ACCESS_KEY: ''
-        ports:
-            - '3000:3000'
         caproverExtra:
             containerHttpPort: '3000'
     $$cap_appname-app:
@@ -56,8 +54,6 @@ services:
         image: 'docker-registry.caprover.webdvlopmnt.com/printlift-app:$$cap_app_image_tag'
         environment:
             environment: 'container'
-        ports:
-            - '8080:8080'
         caproverExtra:
             containerHttpPort: '8080'
 volumes:
