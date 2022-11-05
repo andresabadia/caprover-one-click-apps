@@ -33,7 +33,7 @@ caproverOneClickApp:
           description: Check the page for more info https://hub.docker.com/r/andresabadia/email-server-api/tags
     displayName: A Email Server Api
     isOfficial: false
-    description: This is a simple testing app. It contains an Vue Frontend, Express Backend and postgres DB.
+    description: This is an email server api to send emails via SMTP.
 ########
 version: '3'
 services:
