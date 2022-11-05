@@ -1,0 +1,50 @@
+captainVersion: 4
+caproverOneClickApp:
+    instructions:
+        start: Email server api to send SMTP emails.
+        end: $$cap_appname is deployed. 📨😄📧
+    variables:
+        - id: $$cap_smtp_host
+          label: SMTP Host
+          defaultValue: 'smtp.example.com'
+          description: 'Please add proper values'
+        - id: $$cap_smtp_port
+          label: SMTP Port
+          defaultValue: 465
+        - id: $$cap_smtp_user
+          label: SMTP User
+          defaultValue: 'user@example.com'
+          description: 'Please add proper values'
+        - id: $$cap_smtp_pass
+          label: SMTP Pass
+          defaultValue: 'topsecret'
+          description: 'Please add proper values'
+        - id: $$cap_smtp_from
+          label: SMTP From
+          defaultValue: 'no-reply <$$cap_smtp_user>'
+          description: 'Senders Name and Email (normally the SMTP user). Remove this value to use the value from request payload (not recommended)'
+        - id: $$cap_cors_allowed
+          label: CORS Allowed List
+          defaultValue: 'http://localhost:3000;http://localhost:3001'
+          description: 'Separate domains with semicolon no spaces in between'
+        - id: $$cap_api_image_tag
+          label: email-server-api image tag
+          defaultValue: '0.0.4'
+          description: Check the page for more info https://hub.docker.com/r/andresabadia/email-server-api/tags
+    displayName: A Email Server Api
+    isOfficial: false
+    description: This is a simple testing app. It contains an Vue Frontend, Express Backend and postgres DB.
+########
+version: '3'
+services:
+    $$cap_appname-email-api:
+        image: 'andresabadia/email-server-api:$$cap_api_image_tag'
+        environment:
+            SMTP_HOST: $$cap_smtp_host
+            SMTP_PORT: $$cap_smtp_port
+            SMTP_USER: $$cap_smtp_user
+            SMTP_PASS: $$cap_smtp_pass
+            SMTP_FROM: $$cap_smtp_from
+            CORS_ALLOWED: $$cap_cors_allowed
+        caproverExtra:
+            containerHttpPort: '3000'
