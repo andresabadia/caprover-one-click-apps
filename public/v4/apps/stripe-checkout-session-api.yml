@@ -1,0 +1,35 @@
+captainVersion: 4
+caproverOneClickApp:
+    instructions:
+        start: Strapi checkout session starting.
+        end: $$cap_appname is deployed. 😄
+    variables:
+        - id: $$cap_stripe_api_key
+          label: Stripe API key
+          description: 'Please add proper values'
+        - id: $$cap_success_url
+          label: Success URL
+          defaultValue: 'https://baff.dev'
+          description: 'url to redirect after the payment has been successful'
+        - id: $$cap_cancel_url
+          label: Cancel URL
+          defaultValue: 'https://baff.dev'
+          description: 'url to redirect, if the user cancels the payment process'
+        - id: $$cap_api_image_tag
+          label: stripe-checkout-session-api image tag
+          defaultValue: 'latest'
+          description: Check the page for more info https://hub.docker.com/r/andresabadia/stripe-checkout-session-api/tags
+    displayName: A Stripe Checkout session API
+    isOfficial: false
+    description: This API generates and reroutes to the URL to the strapi checkout.
+########
+version: '3'
+services:
+    $$cap_appname-strapi-api:
+        image: 'andresabadia/stripe-checkout-session-api:$$cap_api_image_tag'
+        environment:
+            STRIPE_API_KEY: $$cap_stripe_api_key
+            SUCCESS_URL: $$cap_success_url
+            CANCEL_URL: $$cap_cancel_url
+        caproverExtra:
+            containerHttpPort: '3000'
