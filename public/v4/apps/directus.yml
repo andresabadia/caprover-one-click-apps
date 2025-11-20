@@ -1,0 +1,184 @@
+captainVersion: 4
+
+# version: "3.3"
+services:
+  $$cap_appname-database:
+    image: "postgis/postgis:17-master"
+    restart: "always"
+    volumes:
+      - $$cap_appname-database:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: $$cap_POSTGRES_USER
+      POSTGRES_PASSWORD: $$cap_POSTGRES_PASSWORD
+      POSTGRES_DB: $$cap_POSTGRES_DB
+    caproverExtra:
+            notExposeAsWebApp: "true"
+    # healthcheck:
+    #   test: ["CMD", "pg_isready", "--host=localhost", "--username=$$cap_POSTGRES_USER"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 5
+    #   start_period: 30s
+
+  $$cap_appname-cache:
+    image: "redis:8"
+    restart: "always"
+    # healthcheck:
+    #   test: ["CMD-SHELL", "[ $$(redis-cli ping) = 'PONG' ]"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 5
+    #   start_period: 30s
+
+  $$cap_appname-directus:
+    image: directus/directus:$$cap_DIRECTUS_VERSION
+    restart: "always"
+    depends_on:
+      $$cap_appname-database:
+        # condition: service_healthy
+      $$cap_appname-cache:
+        # condition: service_healthy
+    environment:
+      SECRET: $$cap_SECRET
+
+      DB_CLIENT: "pg"
+      DB_HOST: srv-captain--$$cap_appname-database
+      DB_PORT: "5432"
+      DB_DATABASE: $$cap_POSTGRES_DB
+      DB_USER: $$cap_POSTGRES_USER
+      DB_PASSWORD: $$cap_POSTGRES_PASSWORD
+
+      CACHE_ENABLED: "true"
+      CACHE_AUTO_PURGE: "true"
+      CACHE_STORE: "redis"
+      REDIS: redis://srv-captain--$$cap_appname-cache:6379
+
+      ADMIN_EMAIL: $$cap_ADMIN_EMAIL
+      ADMIN_PASSWORD: $$cap_ADMIN_PASSWORD
+
+      PUBLIC_URL: $$cap_PUBLIC_URL
+
+      EMAIL_SMTP_HOST: $$cap_EMAIL_SMTP_HOST
+      EMAIL_SMTP_PORT: $$cap_EMAIL_SMTP_PORT
+      EMAIL_SMTP_USER: $$cap_EMAIL_SMTP_USER
+      EMAIL_SMTP_PASSWORD: $$cap_EMAIL_SMTP_PASSWORD
+      EMAIL_SMTP_SECURE: $$cap_EMAIL_SMTP_SECURE
+      EMAIL_FROM: $$cap_EMAIL_FROM
+
+      WEBSOCKETS_ENABLED: $$cap_WEBSOCKETS_ENABLED
+
+      CORS_ENABLED: $$cap_CORS_ENABLED
+      CORS_ORIGIN: $$cap_CORS_ORIGIN
+
+
+    caproverExtra:
+      containerHttpPort: "8055"
+
+    ports:
+      - "8055:8055"
+
+    volumes:
+      - $$cap_appname-directus-uploads:/directus/uploads
+      - $$cap_appname-directus-extensions:/directus/extensions
+
+volumes:
+  $$cap_appname-database: {}
+  $$cap_appname-directus-uploads: {}
+  $$cap_appname-directus-extensions: {}
+
+caproverOneClickApp:
+  instructions:
+    start: "This template will install Directus with PostGIS and Redis on your CapRover server."
+    end: "Deployment is done! Attach a domain to the Directus app and enable HTTPS. Ensure PUBLIC_URL matches that domain."
+  displayName: "Directus CMS with PostGIS and Redis"
+  description: "Directus is an open-source data platform that provides a dynamic API and intuitive admin app for managing your database content. This setup includes PostGIS for geospatial data support and Redis for caching."
+  isOfficial: false
+
+variables:
+  - id: $$cap_DIRECTUS_VERSION
+    label: "Directus Docker Image Tag"
+    description: "Specify the Directus version to deploy. Check https://hub.docker.com/r/directus/directus/tags for available tags."
+    defaultValue: "11.13.3"
+    validRegex: "^.*$"
+
+  - id: $$cap_SECRET
+    label: "Directus $$cap_ (JWT / app secret)"
+    defaultValue: "change_me_secret"
+    validRegex: "^.+$"
+
+  - id: $$cap_POSTGRES_USER
+    label: "Postgres User"
+    defaultValue: "directus"
+    validRegex: "^[a-zA-Z0-9_]+$"
+
+  - id: $$cap_POSTGRES_PASSWORD
+    label: "Postgres Password"
+    defaultValue: "directus"
+    validRegex: "^.{4,}$"
+
+  - id: $$cap_POSTGRES_DB
+    label: "Postgres Database Name"
+    defaultValue: "directus"
+    validRegex: "^[a-zA-Z0-9_]+$"
+
+  - id: $$cap_ADMIN_EMAIL
+    label: "Directus Admin Email"
+    defaultValue: "admin@example.com"
+    validRegex: "^.+@.+\\..+$"
+
+  - id: $$cap_ADMIN_PASSWORD
+    label: "Directus Admin Password"
+    defaultValue: "changeme123"
+    validRegex: "^.{6,}$"
+
+  - id: $$cap_PUBLIC_URL
+    label: "Public URL"
+    defaultValue: "https://directus.example.com"
+    validRegex: "^https?://.+$"
+
+  - id: $$cap_EMAIL_SMTP_HOST
+    label: "SMTP Host"
+    defaultValue: "smtp.example.com"
+    validRegex: "^.+$"
+
+  - id: $$cap_EMAIL_SMTP_PORT
+    label: "SMTP Port"
+    defaultValue: "465"
+    validRegex: "^[0-9]+$"
+
+  - id: $$cap_EMAIL_SMTP_USER
+    label: "SMTP User"
+    defaultValue: "user@example.com"
+    validRegex: "^.+$"
+
+  - id: $$cap_EMAIL_SMTP_PASSWORD
+    label: "SMTP Password"
+    defaultValue: "your_smtp_password"
+    validRegex: "^.+$"
+
+  - id: $$cap_EMAIL_SMTP_SECURE
+    label: "SMTP Secure (true/false)"
+    defaultValue: "true"
+    validRegex: "^(true|false)$"
+
+  - id: $$cap_EMAIL_FROM
+    label: "Email From"
+    defaultValue: "no-reply <no-reply@webdvlopmnt.com>"
+    validRegex: "^.+$"
+
+  - id: $$cap_WEBSOCKETS_ENABLED
+    label: "Enable Websockets (true/false)"
+    defaultValue: "true"
+    validRegex: "^(true|false)$"
+
+  - id: $$cap_CORS_ENABLED
+    label: "Enable CORS (true/false)"
+    description: "Enable CORS to allow consuming the API from different origins."
+    defaultValue: "true"
+    validRegex: "^(true|false)$"
+
+  - id: $$cap_CORS_ORIGIN
+    label: "CORS Origin (JSON Array)"
+    description: "Specify allowed origins for CORS as https://www.npmjs.com/package/cors#configuration-options"
+    defaultValue: "['http://localhost:3000', 'https://example.com']"
+    validRegex: "^.+$"
