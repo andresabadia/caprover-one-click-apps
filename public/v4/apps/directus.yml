@@ -104,7 +104,8 @@ caproverOneClickApp:
       validRegex: "^.*$"
 
     - id: $$cap_SECRET
-      label: "Directus $$cap_ (JWT / app secret)"
+      label: "Directus Secret"
+      description: "Secret key used for JWT and app encryption."
       defaultValue: "change_me_secret"
       validRegex: "^.+$"
 
