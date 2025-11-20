@@ -12,7 +12,7 @@ services:
       POSTGRES_PASSWORD: $$cap_POSTGRES_PASSWORD
       POSTGRES_DB: $$cap_POSTGRES_DB
     caproverExtra:
-            notExposeAsWebApp: "true"
+      notExposeAsWebApp: "true"
     # healthcheck:
     #   test: ["CMD", "pg_isready", "--host=localhost", "--username=$$cap_POSTGRES_USER"]
     #   interval: 10s
@@ -29,6 +29,8 @@ services:
     #   timeout: 5s
     #   retries: 5
     #   start_period: 30s
+    caproverExtra:
+      notExposeAsWebApp: "true"
 
   $$cap_appname-directus:
     image: directus/directus:$$cap_DIRECTUS_VERSION
@@ -94,91 +96,91 @@ caproverOneClickApp:
   description: "Directus is an open-source data platform that provides a dynamic API and intuitive admin app for managing your database content. This setup includes PostGIS for geospatial data support and Redis for caching."
   isOfficial: false
 
-variables:
-  - id: $$cap_DIRECTUS_VERSION
-    label: "Directus Docker Image Tag"
-    description: "Specify the Directus version to deploy. Check https://hub.docker.com/r/directus/directus/tags for available tags."
-    defaultValue: "11.13.3"
-    validRegex: "^.*$"
+  variables:
+    - id: $$cap_DIRECTUS_VERSION
+      label: "Directus Docker Image Tag"
+      description: "Specify the Directus version to deploy. Check https://hub.docker.com/r/directus/directus/tags for available tags."
+      defaultValue: "11.13.3"
+      validRegex: "^.*$"
 
-  - id: $$cap_SECRET
-    label: "Directus $$cap_ (JWT / app secret)"
-    defaultValue: "change_me_secret"
-    validRegex: "^.+$"
+    - id: $$cap_SECRET
+      label: "Directus $$cap_ (JWT / app secret)"
+      defaultValue: "change_me_secret"
+      validRegex: "^.+$"
 
-  - id: $$cap_POSTGRES_USER
-    label: "Postgres User"
-    defaultValue: "directus"
-    validRegex: "^[a-zA-Z0-9_]+$"
+    - id: $$cap_POSTGRES_USER
+      label: "Postgres User"
+      defaultValue: "directus"
+      validRegex: "^[a-zA-Z0-9_]+$"
 
-  - id: $$cap_POSTGRES_PASSWORD
-    label: "Postgres Password"
-    defaultValue: "directus"
-    validRegex: "^.{4,}$"
+    - id: $$cap_POSTGRES_PASSWORD
+      label: "Postgres Password"
+      defaultValue: "directus"
+      validRegex: "^.{4,}$"
 
-  - id: $$cap_POSTGRES_DB
-    label: "Postgres Database Name"
-    defaultValue: "directus"
-    validRegex: "^[a-zA-Z0-9_]+$"
+    - id: $$cap_POSTGRES_DB
+      label: "Postgres Database Name"
+      defaultValue: "directus"
+      validRegex: "^[a-zA-Z0-9_]+$"
 
-  - id: $$cap_ADMIN_EMAIL
-    label: "Directus Admin Email"
-    defaultValue: "admin@example.com"
-    validRegex: "^.+@.+\\..+$"
+    - id: $$cap_ADMIN_EMAIL
+      label: "Directus Admin Email"
+      defaultValue: "admin@example.com"
+      validRegex: "^.+@.+\\..+$"
 
-  - id: $$cap_ADMIN_PASSWORD
-    label: "Directus Admin Password"
-    defaultValue: "changeme123"
-    validRegex: "^.{6,}$"
+    - id: $$cap_ADMIN_PASSWORD
+      label: "Directus Admin Password"
+      defaultValue: "changeme123"
+      validRegex: "^.{6,}$"
 
-  - id: $$cap_PUBLIC_URL
-    label: "Public URL"
-    defaultValue: "https://directus.example.com"
-    validRegex: "^https?://.+$"
+    - id: $$cap_PUBLIC_URL
+      label: "Public URL"
+      defaultValue: "https://directus.example.com"
+      validRegex: "^https?://.+$"
 
-  - id: $$cap_EMAIL_SMTP_HOST
-    label: "SMTP Host"
-    defaultValue: "smtp.example.com"
-    validRegex: "^.+$"
+    - id: $$cap_EMAIL_SMTP_HOST
+      label: "SMTP Host"
+      defaultValue: "smtp.example.com"
+      validRegex: "^.+$"
 
-  - id: $$cap_EMAIL_SMTP_PORT
-    label: "SMTP Port"
-    defaultValue: "465"
-    validRegex: "^[0-9]+$"
+    - id: $$cap_EMAIL_SMTP_PORT
+      label: "SMTP Port"
+      defaultValue: "465"
+      validRegex: "^[0-9]+$"
 
-  - id: $$cap_EMAIL_SMTP_USER
-    label: "SMTP User"
-    defaultValue: "user@example.com"
-    validRegex: "^.+$"
+    - id: $$cap_EMAIL_SMTP_USER
+      label: "SMTP User"
+      defaultValue: "user@example.com"
+      validRegex: "^.+$"
 
-  - id: $$cap_EMAIL_SMTP_PASSWORD
-    label: "SMTP Password"
-    defaultValue: "your_smtp_password"
-    validRegex: "^.+$"
+    - id: $$cap_EMAIL_SMTP_PASSWORD
+      label: "SMTP Password"
+      defaultValue: "your_smtp_password"
+      validRegex: "^.+$"
 
-  - id: $$cap_EMAIL_SMTP_SECURE
-    label: "SMTP Secure (true/false)"
-    defaultValue: "true"
-    validRegex: "^(true|false)$"
+    - id: $$cap_EMAIL_SMTP_SECURE
+      label: "SMTP Secure (true/false)"
+      defaultValue: "true"
+      validRegex: "^(true|false)$"
 
-  - id: $$cap_EMAIL_FROM
-    label: "Email From"
-    defaultValue: "no-reply <no-reply@webdvlopmnt.com>"
-    validRegex: "^.+$"
+    - id: $$cap_EMAIL_FROM
+      label: "Email From"
+      defaultValue: "no-reply <no-reply@webdvlopmnt.com>"
+      validRegex: "^.+$"
 
-  - id: $$cap_WEBSOCKETS_ENABLED
-    label: "Enable Websockets (true/false)"
-    defaultValue: "true"
-    validRegex: "^(true|false)$"
+    - id: $$cap_WEBSOCKETS_ENABLED
+      label: "Enable Websockets (true/false)"
+      defaultValue: "true"
+      validRegex: "^(true|false)$"
 
-  - id: $$cap_CORS_ENABLED
-    label: "Enable CORS (true/false)"
-    description: "Enable CORS to allow consuming the API from different origins."
-    defaultValue: "true"
-    validRegex: "^(true|false)$"
+    - id: $$cap_CORS_ENABLED
+      label: "Enable CORS (true/false)"
+      description: "Enable CORS to allow consuming the API from different origins."
+      defaultValue: "true"
+      validRegex: "^(true|false)$"
 
-  - id: $$cap_CORS_ORIGIN
-    label: "CORS Origin (JSON Array)"
-    description: "Specify allowed origins for CORS as https://www.npmjs.com/package/cors#configuration-options"
-    defaultValue: "['http://localhost:3000', 'https://example.com']"
-    validRegex: "^.+$"
+    - id: $$cap_CORS_ORIGIN
+      label: "CORS Origin (JSON Array)"
+      description: "Specify allowed origins for CORS as https://www.npmjs.com/package/cors#configuration-options"
+      defaultValue: "['http://localhost:3000', 'https://example.com']"
+      validRegex: "^.+$"
