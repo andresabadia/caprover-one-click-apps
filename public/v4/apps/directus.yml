@@ -60,6 +60,7 @@ services:
 
       PUBLIC_URL: $$cap_PUBLIC_URL
 
+      EMAIL_TRANSPORT: $$cap_EMAIL_TRANSPORT
       EMAIL_SMTP_HOST: $$cap_EMAIL_SMTP_HOST
       EMAIL_SMTP_PORT: $$cap_EMAIL_SMTP_PORT
       EMAIL_SMTP_USER: $$cap_EMAIL_SMTP_USER
@@ -131,6 +132,11 @@ caproverOneClickApp:
       label: "Public URL"
       description: "URL where your API can be reached on the web. Used for things like OAuth redirects, forgot-password emails, and publicly-accessible logos."
       defaultValue: "https://directus.example.com"
+
+    - id: $$cap_EMAIL_TRANSPORT
+      label: "Email Transport Method"
+      description: "Method used to send emails. Options: smtp, sendmail, mailgun, ses, postmark, etc."
+      defaultValue: "smtp"
 
     - id: $$cap_EMAIL_SMTP_HOST
       label: "SMTP Host"
