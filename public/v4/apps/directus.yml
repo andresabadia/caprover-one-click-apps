@@ -73,6 +73,8 @@ services:
       CORS_ENABLED: $$cap_CORS_ENABLED
       CORS_ORIGIN: $$cap_CORS_ORIGIN
 
+      DB_POOL__MIN: "0"
+
 
     caproverExtra:
       containerHttpPort: "8055"
@@ -148,7 +150,7 @@ caproverOneClickApp:
 
     - id: $$cap_EMAIL_SMTP_USER
       label: "SMTP User"
-      defaultValue: "user@example.com"
+      defaultValue: "no-reply@webdvlopmnt.com"
 
     - id: $$cap_EMAIL_SMTP_PASSWORD
       label: "SMTP Password"
@@ -160,7 +162,7 @@ caproverOneClickApp:
 
     - id: $$cap_EMAIL_FROM
       label: "Email From"
-      defaultValue: "no-reply <no-reply@webdvlopmnt.com>"
+      defaultValue: "no-reply@webdvlopmnt.com"
 
     - id: $$cap_WEBSOCKETS_ENABLED
       label: "Enable Websockets (true/false)"
