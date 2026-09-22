@@ -1,0 +1,77 @@
+captainVersion: 4
+
+services:
+  $$cap_appname-db:
+    image: postgres:$$cap_postgres_version
+    environment:
+      POSTGRES_DB: control
+      POSTGRES_USER: control
+      POSTGRES_PASSWORD_FILE: /run/control/postgres-password
+    volumes:
+      - $$cap_appname-db-data:/var/lib/postgresql/data
+      - /secure/control-caprover/db:/run/control:ro
+    caproverExtra:
+      notExposeAsWebApp: 'true'
+
+  $$cap_appname-server:
+    image: docker.io/andresabadia/aquintinha-server:$$cap_server_version
+    depends_on:
+      - $$cap_appname-db
+    environment:
+      CONTROL_LISTEN: 0.0.0.0:8081
+      CONTROL_ORIGINS: https://control.aquintinha.com
+      CONTROL_RELAY_HOST: relay.aquintinha.com
+      CONTROL_DATABASE_URL_FILE: /run/control/database-url
+      CONTROL_SIGNING_KEY_FILE: /run/control/signing-key.pem
+      CONTROL_SIGNING_KEY_ID: $$cap_signing_key_id
+      CONTROL_VERIFY_KEYS_DIR: /run/control/verify-keys
+    volumes:
+      - /secure/control-caprover/server:/run/control:ro
+    caproverExtra:
+      containerHttpPort: '8081'
+      websocketSupport: 'true'
+
+caproverOneClickApp:
+  variables:
+    - id: $$cap_server_version
+      label: Public server image tag
+      defaultValue: '0.1.0'
+      description: Use a reviewed linux/amd64 aquintinha-server tag published on Docker Hub.
+      validRegex: '/^([^\s\/])+$/'
+    - id: $$cap_postgres_version
+      label: PostgreSQL image tag
+      defaultValue: '17.6-alpine'
+      description: Keep this pinned to the PostgreSQL release qualified by the repository.
+      validRegex: '/^([^\s\/])+$/'
+    - id: $$cap_signing_key_id
+      label: Active signing key ID
+      defaultValue: k1
+      description: Must match the public key filename under /secure/control-caprover/server/verify-keys.
+      validRegex: '/^[A-Za-z0-9._-]{1,64}$/'
+  instructions:
+    start: |-
+      Deploys the A Quintinha public authorization server and its private PostgreSQL database.
+
+      Enter aquintinha as the app name. The database URL already prepared at
+      /secure/control-caprover/server/database-url must address aquintinha-db:5432.
+
+      Before continuing, create the file-backed credentials under
+      /secure/control-caprover as documented in docs/caprover.md. This template does
+      not generate, display, or store passwords and private keys in CapRover fields.
+    end: |-
+      The aquintinha-db and aquintinha-server apps have been created.
+
+      Before adding public domains:
+      1. Confirm aquintinha-db is not exposed, has one instance, and retains its data volume.
+      2. Confirm both /secure/control-caprover bind mounts are present and read-only.
+      3. Run the database migration and register gateway home using docs/caprover.md.
+      4. Copy the provisioned machine-secret to the Home Assistant gateway app.
+      5. Add control.aquintinha.com and relay.aquintinha.com to aquintinha-server,
+         enable HTTPS and Force HTTPS for both, and retain WebSocket support.
+
+      Do not expose PostgreSQL or route either public hostname until migration and
+      gateway registration have completed successfully.
+  displayName: A Quintinha Control
+  isOfficial: false
+  description: Public authorization service, relay, and private PostgreSQL database for A Quintinha Control.
+  documentation: https://github.com/andresabadia/aquintinha.com/blob/main/docs/caprover.md
