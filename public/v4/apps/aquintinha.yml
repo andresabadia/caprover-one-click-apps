@@ -21,6 +21,7 @@ services:
       CONTROL_LISTEN: 0.0.0.0:8081
       CONTROL_ORIGINS: https://control.aquintinha.com
       CONTROL_RELAY_HOST: relay.aquintinha.com
+      CONTROL_AUTO_MIGRATE: $$cap_auto_migrate
       CONTROL_DATABASE_URL_FILE: /run/control/database-url
       CONTROL_SIGNING_KEY_FILE: /run/control/signing-key.pem
       CONTROL_SIGNING_KEY_ID: $$cap_signing_key_id
@@ -35,14 +36,19 @@ caproverOneClickApp:
   variables:
     - id: $$cap_server_version
       label: Public server image tag
-      defaultValue: '0.1.0'
-      description: Use a reviewed linux/amd64 aquintinha-server tag published on Docker Hub.
+      defaultValue: '0.2.1'
+      description: Coordinated linux/amd64 release with gateway-owned scope synchronization.
       validRegex: '/^([^\s\/])+$/'
     - id: $$cap_postgres_version
       label: PostgreSQL image tag
       defaultValue: '17.6-alpine'
       description: Keep this pinned to the PostgreSQL release qualified by the repository.
       validRegex: '/^([^\s\/])+$/'
+    - id: $$cap_auto_migrate
+      label: Apply database migrations automatically
+      defaultValue: 'true'
+      description: Apply pending embedded migrations transactionally before the server accepts traffic.
+      validRegex: '/^(true|false)$/'
     - id: $$cap_signing_key_id
       label: Active signing key ID
       defaultValue: k1
@@ -64,13 +70,13 @@ caproverOneClickApp:
       Before adding public domains:
       1. Confirm aquintinha-db is not exposed, has one instance, and retains its data volume.
       2. Confirm both /secure/control-caprover bind mounts are present and read-only.
-      3. Run the database migration and register gateway home using docs/caprover.md.
+      3. Confirm automatic migration succeeded and provision gateway home using docs/caprover.md.
       4. Copy the provisioned machine-secret to the Home Assistant gateway app.
       5. Add control.aquintinha.com and relay.aquintinha.com to aquintinha-server,
          enable HTTPS and Force HTTPS for both, and retain WebSocket support.
 
       Do not expose PostgreSQL or route either public hostname until migration and
-      gateway registration have completed successfully.
+      gateway provisioning and initial scope synchronization have completed successfully.
   displayName: A Quintinha Control
   isOfficial: false
   description: Public authorization service, relay, and private PostgreSQL database for A Quintinha Control.
