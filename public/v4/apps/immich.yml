@@ -77,7 +77,6 @@ services:
             retries: 5
             start_period: 30s
 
-
 caproverOneClickApp:
     displayName: Immich
 
@@ -130,7 +129,6 @@ caproverOneClickApp:
             Back up both the media storage and PostgreSQL database regularly.
 
     variables:
-
         - label: Immich version
           id: $$cap_version
           description: >-

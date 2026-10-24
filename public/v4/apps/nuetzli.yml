@@ -1,87 +1,87 @@
 captainVersion: 4
 
 services:
-  $$cap_appname-db:
-    image: postgres:$$cap_postgres_version
-    environment:
-      POSTGRES_DB: nuetzli
-      POSTGRES_USER: nuetzli_admin
-      POSTGRES_PASSWORD_FILE: /run/nuetzli/postgres-password
-    volumes:
-      - $$cap_appname-db-data:/var/lib/postgresql/data
-      - /secure/$$cap_appname/db:/run/nuetzli:ro
-      - /secure/$$cap_appname/init:/docker-entrypoint-initdb.d:ro
-    caproverExtra:
-      notExposeAsWebApp: 'true'
+    $$cap_appname-db:
+        image: postgres:$$cap_postgres_version
+        environment:
+            POSTGRES_DB: nuetzli
+            POSTGRES_USER: nuetzli_admin
+            POSTGRES_PASSWORD_FILE: /run/nuetzli/postgres-password
+        volumes:
+            - $$cap_appname-db-data:/var/lib/postgresql/data
+            - /secure/$$cap_appname/db:/run/nuetzli:ro
+            - /secure/$$cap_appname/init:/docker-entrypoint-initdb.d:ro
+        caproverExtra:
+            notExposeAsWebApp: 'true'
 
-  $$cap_appname-server:
-    depends_on:
-      - $$cap_appname-db
-    environment:
-      APP_ENV: production
-      PORT: '8080'
-      STATIC_DIR: /app/public
-      DATABASE_URL_FILE: /run/nuetzli/database-url
-      DB_MAX_CONNS: '$$cap_db_max_conns'
-      # This template intentionally uses the private Docker network without DB TLS.
-      DB_ALLOW_INSECURE: 'true'
-    volumes:
-      - /secure/$$cap_appname/server:/run/nuetzli:ro
-    caproverExtra:
-      containerHttpPort: '8080'
-      websocketSupport: 'true'
-      # Provision the app without depending on an unpublished Nuetzli image.
-      # The first CLI release replaces this bootstrap image, retaining app settings.
-      dockerfileLines:
-        - FROM busybox:1.37.0
-        - RUN mkdir -p /www && printf '%s\n' '<!doctype html><html lang="en"><meta charset="utf-8"><title>Nuetzli setup</title><h1>Nuetzli is provisioned.</h1><p>Deploy the application through the checked GitHub Actions workflow.</p></html>' > /www/index.html
-        - USER 65532:65532
-        - EXPOSE 8080
-        - CMD ["httpd", "-f", "-p", "8080", "-h", "/www"]
+    $$cap_appname-server:
+        depends_on:
+            - $$cap_appname-db
+        environment:
+            APP_ENV: production
+            PORT: '8080'
+            STATIC_DIR: /app/public
+            DATABASE_URL_FILE: /run/nuetzli/database-url
+            DB_MAX_CONNS: '$$cap_db_max_conns'
+            # This template intentionally uses the private Docker network without DB TLS.
+            DB_ALLOW_INSECURE: 'true'
+        volumes:
+            - /secure/$$cap_appname/server:/run/nuetzli:ro
+        caproverExtra:
+            containerHttpPort: '8080'
+            websocketSupport: 'true'
+            # Provision the app without depending on an unpublished Nuetzli image.
+            # The first CLI release replaces this bootstrap image, retaining app settings.
+            dockerfileLines:
+                - FROM busybox:1.37.0
+                - RUN mkdir -p /www && printf '%s\n' '<!doctype html><html lang="en"><meta charset="utf-8"><title>Nuetzli setup</title><h1>Nuetzli is provisioned.</h1><p>Deploy the application through the checked GitHub Actions workflow.</p></html>' > /www/index.html
+                - USER 65532:65532
+                - EXPOSE 8080
+                - CMD ["httpd", "-f", "-p", "8080", "-h", "/www"]
 
 caproverOneClickApp:
-  variables:
-    - id: $$cap_postgres_version
-      label: PostgreSQL 17 image tag
-      defaultValue: '17-alpine'
-      description: Stay on PostgreSQL 17 Alpine; pin an exact qualified tag for production. Major upgrades require a database migration plan.
-      validRegex: '/^17(?:\.[0-9]+)?-alpine(?:[0-9.]+)?$/'
-    - id: $$cap_db_max_conns
-      label: Database connections per web replica
-      defaultValue: '10'
-      description: Account for all replicas, rolling updates and administrative connections.
-      validRegex: '/^(?:[1-9]|[1-9][0-9]|100)$/'
-  instructions:
-    start: |-
-      Creates a private PostgreSQL database and a Nuetzli web app ready for CLI releases.
+    variables:
+        - id: $$cap_postgres_version
+          label: PostgreSQL 17 image tag
+          defaultValue: '17-alpine'
+          description: Stay on PostgreSQL 17 Alpine; pin an exact qualified tag for production. Major upgrades require a database migration plan.
+          validRegex: '/^17(?:\.[0-9]+)?-alpine(?:[0-9.]+)?$/'
+        - id: $$cap_db_max_conns
+          label: Database connections per web replica
+          defaultValue: '10'
+          description: Account for all replicas, rolling updates and administrative connections.
+          validRegex: '/^(?:[1-9]|[1-9][0-9]|100)$/'
+    instructions:
+        start: |-
+            Creates a private PostgreSQL database and a Nuetzli web app ready for CLI releases.
 
-      Before continuing, run on the CapRover node:
-        sudo python3 scripts/prepare-caprover.py --app-name nuetzli
-      Use the same app name in this form. The script prepares /secure/nuetzli
-      with file-backed credentials and first-start database initialization scripts.
-      For another name, replace nuetzli in the command and form together.
+            Before continuing, run on the CapRover node:
+              sudo python3 scripts/prepare-caprover.py --app-name nuetzli
+            Use the same app name in this form. The script prepares /secure/nuetzli
+            with file-backed credentials and first-start database initialization scripts.
+            For another name, replace nuetzli in the command and form together.
 
-      This template uses unencrypted PostgreSQL transport on the private Docker
-      network and explicitly sets DB_ALLOW_INSECURE=true. No database port is published.
-      For verified database TLS, see docs/DEPLOYMENT.md.
+            This template uses unencrypted PostgreSQL transport on the private Docker
+            network and explicitly sets DB_ALLOW_INSECURE=true. No database port is published.
+            For verified database TLS, see docs/DEPLOYMENT.md.
 
-      Use a single CapRover node for this file-backed setup. All bind mount paths
-      must exist on the node running each task. Do not reuse an existing database volume.
-    end: |-
-      $$cap_appname-db and $$cap_appname-server have been created.
+            Use a single CapRover node for this file-backed setup. All bind mount paths
+            must exist on the node running each task. Do not reuse an existing database volume.
+        end: |-
+            $$cap_appname-db and $$cap_appname-server have been created.
 
-      1. Check the database initialization logs and confirm its data volume is retained.
-      2. Confirm the three host bind mounts are read-only and both services use one instance.
-      3. The server currently serves only a bootstrap page, not the Nuetzli API.
-      4. Enable an app token on $$cap_appname-server.
-      5. Set GitHub production variables CAPROVER_URL to the HTTPS dashboard URL
-         and CAPROVER_APP to $$cap_appname-server; set secret CAPROVER_APP_TOKEN.
-      6. Push or merge to main. After checks pass, the CLI deploys the real application.
-      7. Verify /api/ready, notes and WebSockets; add the public domain and enable HTTPS.
+            1. Check the database initialization logs and confirm its data volume is retained.
+            2. Confirm the three host bind mounts are read-only and both services use one instance.
+            3. The server currently serves only a bootstrap page, not the Nuetzli API.
+            4. Enable an app token on $$cap_appname-server.
+            5. Set GitHub production variables CAPROVER_URL to the HTTPS dashboard URL
+               and CAPROVER_APP to $$cap_appname-server; set secret CAPROVER_APP_TOKEN.
+            6. Push or merge to main. After checks pass, the CLI deploys the real application.
+            7. Verify /api/ready, notes and WebSockets; add the public domain and enable HTTPS.
 
-      Later app releases use the CLI workflow, not this template. Do not reinstall
-      the template over a live stack. Protect /secure/$$cap_appname and back up PostgreSQL.
-  displayName: Nuetzli
-  isOfficial: false
-  description: Nuetzli web app bootstrap and private PostgreSQL with file-backed credentials, initial schema and CLI updates.
-  documentation: https://github.com/andresabadia/nuetzli.com/blob/main/docs/DEPLOYMENT.md
+            Later app releases use the CLI workflow, not this template. Do not reinstall
+            the template over a live stack. Protect /secure/$$cap_appname and back up PostgreSQL.
+    displayName: Nuetzli
+    isOfficial: false
+    description: Nuetzli web app bootstrap and private PostgreSQL with file-backed credentials, initial schema and CLI updates.
+    documentation: https://github.com/andresabadia/nuetzli.com/blob/main/docs/DEPLOYMENT.md
