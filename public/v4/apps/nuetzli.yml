@@ -52,8 +52,8 @@ caproverOneClickApp:
           validRegex: '/^[a-z0-9][a-z0-9._-]*\/[a-z0-9][a-z0-9._-]*$/'
         - id: $$cap_version
           label: Published image version
-          defaultValue: '0'
-          description: Initial boilerplate is version 0 (Git tag v0). PostgreSQL is versioned separately.
+          defaultValue: '0.0.0'
+          description: Initial boilerplate is version 0.0.0 (Git tag v0.0.0). PostgreSQL is versioned separately.
           validRegex: '/^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$/'
         - id: $$cap_postgres_version
           label: Official PostgreSQL image version
@@ -85,8 +85,8 @@ caproverOneClickApp:
             Installs official PostgreSQL, a dedicated migrator and the Nuetzli web app.
             No Python, host scripts, secret directories or bind mounts are required.
 
-            Before continuing, publish version 0 using the checked GitHub Actions workflow
-            (Git tag v0) and make the application repository public. Use nuetzli as
+            Before continuing, publish version 0.0.0 using the checked GitHub Actions workflow
+            (Git tag v0.0.0) and make the application repository public. Use nuetzli as
             the app name, or another unused name. Leave the generated passwords distinct.
 
             The migrator initializes the schema and limited-privilege app role. The web
