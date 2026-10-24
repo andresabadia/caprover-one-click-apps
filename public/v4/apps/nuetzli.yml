@@ -6,46 +6,75 @@ services:
         environment:
             POSTGRES_DB: nuetzli
             POSTGRES_USER: nuetzli_admin
-            POSTGRES_PASSWORD_FILE: /run/nuetzli/postgres-password
+            POSTGRES_PASSWORD: $$cap_admin_password
         volumes:
             - $$cap_appname-db-data:/var/lib/postgresql/data
-            - /secure/$$cap_appname/db:/run/nuetzli:ro
-            - /secure/$$cap_appname/init:/docker-entrypoint-initdb.d:ro
         caproverExtra:
             notExposeAsWebApp: 'true'
 
-    $$cap_appname-server:
+    $$cap_appname-migrate:
+        image: docker.io/$$cap_image_repository:$$cap_version
         depends_on:
             - $$cap_appname-db
+        environment:
+            NUETZLI_MODE: migrate-serve
+            APP_ENV: production
+            PORT: '8080'
+            MIGRATION_DATABASE_URL: postgres://nuetzli_admin:$$cap_admin_password@$$cap_appname-db:5432/nuetzli?sslmode=disable
+            APP_DATABASE_PASSWORD: $$cap_app_password
+            MIGRATION_STATUS_TOKEN: $$cap_migration_status_token
+            DB_ALLOW_INSECURE: 'true'
+        caproverExtra:
+            containerHttpPort: '8080'
+
+    $$cap_appname-server:
+        image: docker.io/$$cap_image_repository:$$cap_version
+        depends_on:
+            - $$cap_appname-db
+            - $$cap_appname-migrate
         environment:
             APP_ENV: production
             PORT: '8080'
             STATIC_DIR: /app/public
-            DATABASE_URL_FILE: /run/nuetzli/database-url
+            DATABASE_URL: postgres://nuetzli_app:$$cap_app_password@$$cap_appname-db:5432/nuetzli?sslmode=disable
             DB_MAX_CONNS: '$$cap_db_max_conns'
-            # This template intentionally uses the private Docker network without DB TLS.
             DB_ALLOW_INSECURE: 'true'
-        volumes:
-            - /secure/$$cap_appname/server:/run/nuetzli:ro
         caproverExtra:
             containerHttpPort: '8080'
             websocketSupport: 'true'
-            # Provision the app without depending on an unpublished Nuetzli image.
-            # The first CLI release replaces this bootstrap image, retaining app settings.
-            dockerfileLines:
-                - FROM busybox:1.37.0
-                - RUN mkdir -p /www && printf '%s\n' '<!doctype html><html lang="en"><meta charset="utf-8"><title>Nuetzli setup</title><h1>Nuetzli is provisioned.</h1><p>Deploy the application through the checked GitHub Actions workflow.</p></html>' > /www/index.html
-                - USER 65532:65532
-                - EXPOSE 8080
-                - CMD ["httpd", "-f", "-p", "8080", "-h", "/www"]
 
 caproverOneClickApp:
     variables:
+        - id: $$cap_image_repository
+          label: Public Docker Hub application repository
+          defaultValue: andresabadia/nuetzli
+          description: Publish this application image before installation. The migrator uses the same image.
+          validRegex: '/^[a-z0-9][a-z0-9._-]*\/[a-z0-9][a-z0-9._-]*$/'
+        - id: $$cap_version
+          label: Published image version
+          defaultValue: '0'
+          description: Initial boilerplate is version 0 (Git tag v0). PostgreSQL is versioned separately.
+          validRegex: '/^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$/'
         - id: $$cap_postgres_version
-          label: PostgreSQL 17 image tag
+          label: Official PostgreSQL image version
           defaultValue: '17-alpine'
-          description: Stay on PostgreSQL 17 Alpine; pin an exact qualified tag for production. Major upgrades require a database migration plan.
+          description: Pin a PostgreSQL 17 Alpine release as needed. Major database upgrades require a separate plan.
           validRegex: '/^17(?:\.[0-9]+)?-alpine(?:[0-9.]+)?$/'
+        - id: $$cap_migration_status_token
+          label: Migration status bearer token
+          defaultValue: $$cap_gen_random_hex(64)
+          description: Copy to GitHub secret MIGRATION_STATUS_TOKEN. Only the migrator receives database admin credentials.
+          validRegex: '/^[a-fA-F0-9]{32,128}$/'
+        - id: $$cap_admin_password
+          label: Database administrator password
+          defaultValue: $$cap_gen_random_hex(64)
+          description: Keep this distinct from the app password. Stored in the database app environment; no host files are needed.
+          validRegex: '/^[a-fA-F0-9]{32,128}$/'
+        - id: $$cap_app_password
+          label: Application database password
+          defaultValue: $$cap_gen_random_hex(64)
+          description: Used to create the limited-privilege app role and connect the server. Hexadecimal avoids URL escaping problems.
+          validRegex: '/^[a-fA-F0-9]{32,128}$/'
         - id: $$cap_db_max_conns
           label: Database connections per web replica
           defaultValue: '10'
@@ -53,35 +82,34 @@ caproverOneClickApp:
           validRegex: '/^(?:[1-9]|[1-9][0-9]|100)$/'
     instructions:
         start: |-
-            Creates a private PostgreSQL database and a Nuetzli web app ready for CLI releases.
+            Installs official PostgreSQL, a dedicated migrator and the Nuetzli web app.
+            No Python, host scripts, secret directories or bind mounts are required.
 
-            Before continuing, run on the CapRover node:
-              sudo python3 scripts/prepare-caprover.py --app-name nuetzli
-            Use the same app name in this form. The script prepares /secure/nuetzli
-            with file-backed credentials and first-start database initialization scripts.
-            For another name, replace nuetzli in the command and form together.
+            Before continuing, publish version 0 using the checked GitHub Actions workflow
+            (Git tag v0) and make the application repository public. Use nuetzli as
+            the app name, or another unused name. Leave the generated passwords distinct.
 
-            This template uses unencrypted PostgreSQL transport on the private Docker
-            network and explicitly sets DB_ALLOW_INSECURE=true. No database port is published.
-            For verified database TLS, see docs/DEPLOYMENT.md.
-
-            Use a single CapRover node for this file-backed setup. All bind mount paths
-            must exist on the node running each task. Do not reuse an existing database volume.
+            The migrator initializes the schema and limited-privilege app role. The web
+            app never receives the database administrator URL. Use a new database volume.
+            This template uses unencrypted PostgreSQL over the private Docker network and
+            explicitly enables DB_ALLOW_INSECURE. It does not publish the database port.
         end: |-
-            $$cap_appname-db and $$cap_appname-server have been created.
+            $$cap_appname-db, $$cap_appname-migrate and $$cap_appname-server have been created.
 
-            1. Check the database initialization logs and confirm its data volume is retained.
-            2. Confirm the three host bind mounts are read-only and both services use one instance.
-            3. The server currently serves only a bootstrap page, not the Nuetzli API.
-            4. Enable an app token on $$cap_appname-server.
-            5. Set GitHub production variables CAPROVER_URL to the HTTPS dashboard URL
-               and CAPROVER_APP to $$cap_appname-server; set secret CAPROVER_APP_TOKEN.
-            6. Push or merge to main. After checks pass, the CLI deploys the real application.
-            7. Verify /api/ready, notes and WebSockets; add the public domain and enable HTTPS.
+            1. Wait for the migrator logs to confirm success, then verify server /api/ready.
+            2. Keep the database private with one instance and its persistent data volume.
+            3. Enable HTTPS and Force HTTPS on the migration app's default domain.
+               It exposes only GET /status, protected by the generated bearer token.
+            4. Add your public domain to the server; enable HTTPS and WebSocket support.
+            5. Enable app tokens on both migrate and server apps. Configure GitHub as
+               documented in docs/DEPLOYMENT.md, including MIGRATION_URL and its status token.
+            6. Later main pushes run checks, publish one image, deploy the migrator, wait
+               for the checked revision to report success, and only then deploy the server.
 
-            Later app releases use the CLI workflow, not this template. Do not reinstall
-            the template over a live stack. Protect /secure/$$cap_appname and back up PostgreSQL.
+            Do not reinstall the template for updates. Back up PostgreSQL separately.
+            Database passwords are not rotated automatically. Applied migrations are tracked
+            with checksums and a transaction lock; only add new numbered SQL files.
     displayName: Nuetzli
     isOfficial: false
-    description: Nuetzli web app bootstrap and private PostgreSQL with file-backed credentials, initial schema and CLI updates.
+    description: Official PostgreSQL, an isolated migration service and Nuetzli, with generated credentials and checked image deployments.
     documentation: https://github.com/andresabadia/nuetzli.com/blob/main/docs/DEPLOYMENT.md
